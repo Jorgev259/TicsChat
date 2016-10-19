@@ -110,27 +110,30 @@ function refresh() {
     
 }
 
-//window.addEventListener('beforeunload', function () {
-//    var wait = true;
+window.addEventListener('beforeunload', function () {
+    var wait = true;
+    setTimeout(function () {
+        wait = false;
+    },5000);
 
-//    var data = new FormData();
-//    data.append("accion", "offline");
-//    data.append("usuario", usuario);
-//    data.append("sala", "sala0");
+    var data = new FormData();
+    data.append("accion", "offline");
+    data.append("usuario", usuario);
+    data.append("sala", "sala0");
 
-//    $.ajax({
-//        url: '/Api/Chat',
-//        processData: false,
-//        contentType: false,
-//        data: data,
-//        type: 'POST'
-//    }).done(function (result) {
-//        wait = false;
-//    }).fail(function (a, b, c) {
-//        console.log(a);
-//        console.log(b);
-//        console.log(c);
-//    });
+    $.ajax({
+        url: '/Api/Chat',
+        processData: false,
+        contentType: false,
+        data: data,
+        type: 'POST'
+    }).done(function (result) {
+        wait = false;
+    }).fail(function (a, b, c) {
+        console.log(a);
+        console.log(b);
+        console.log(c);
+    });
 
-//    while (wait == true) { }
-//})
+    while (wait == true) { }
+})

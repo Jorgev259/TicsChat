@@ -46,8 +46,6 @@ namespace TicsChat.Controllers
                     break;
 
                 case "join":                   
-                   
-
                     var mensajes = collection.Find(new BsonDocument()).ToList();
                     var usuarios = collectionUsuarios.Find(new BsonDocument()).ToList();
 
@@ -102,6 +100,27 @@ namespace TicsChat.Controllers
                 case "offline":
                     var filtroOffline = Builders<BsonDocument>.Filter.Eq("nombre", Request["usuario"]);
                     collectionUsuarios.DeleteMany(filtroOffline);
+
+
+                    filter = new BsonDocument();
+                    cursor = collection.Find(filter).ToList();
+                    num = 0;
+
+                    if (cursor.Count() > 0)
+                    {
+                        num = Convert.ToInt32(cursor[cursor.Count() - 1]["numero"].ToString());
+                    }
+
+                    documento = new BsonDocument
+                        {
+                            { "mensaje", "El usuario " + Request["usuario"] + " se ha desconectado" },
+                            { "numero", num + 1},
+                            {"tipo", "sistema" },
+                            {"modo", "offline" },
+                            {"info", Request["usuario"] }
+                        };
+
+                    collection.InsertOne(documento);
 
                     break;
 
