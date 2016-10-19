@@ -61,39 +61,43 @@ namespace TicsChat.Controllers
                         usuario.Remove("_id");
                     }
 
-                    var numero = "0";
-                    if(mensajes.Count() > 0)
+                    if (existe == false)
                     {
-                        numero = mensajes[mensajes.Count() - 1]["numero"].ToString();
+                        var numero = "0";
+                        if (mensajes.Count() > 0)
+                        {
+                            numero = mensajes[mensajes.Count() - 1]["numero"].ToString();
+                        }
+
+                        usuarios.Add(new BsonDocument { { "numero", numero } });
+
+                        filter = new BsonDocument();
+                        cursor = collection.Find(filter).ToList();
+                        num = 0;
+
+                        if (cursor.Count() > 0)
+                        {
+                            num = Convert.ToInt32(cursor[cursor.Count() - 1]["numero"].ToString());
+                        }
+
+                        documento = new BsonDocument
+                        {
+                            { "mensaje", "El usuario " + Request["usuario"] + " se ha unido a la sala" },
+                            { "numero", num + 1},
+                            {"tipo", "sistema" },
+                            {"modo", "online" },
+                            {"info", Request["usuario"] }
+                        };
+
+                        collection.InsertOne(documento);
+                        collectionUsuarios.InsertOne(new BsonDocument { { "nombre", Request["usuario"] } });
+
+                        return usuarios.ToJson();
+                    }else
+                    {
+                        return "Login ya existe en esta sala";
                     }
-                    
-                    usuarios.Add(new BsonDocument { { "numero", numero } });
-
-                    filter = new BsonDocument();
-                    cursor = collection.Find(filter).ToList();
-                    num = 0;
-
-                    if (cursor.Count() > 0)
-                    {
-                        num = Convert.ToInt32(cursor[cursor.Count() - 1]["numero"].ToString());
-                    }
-
-                    documento = new BsonDocument
-                    {
-                        { "mensaje", "El usuario " + Request["usuario"] + " se ha unido a la sala" },
-                        { "numero", num + 1},
-                        {"tipo", "sistema" },
-                        {"modo", "online" },
-                        {"info", Request["usuario"] }
-                    };
-
-                    collection.InsertOne(documento);
-                    collectionUsuarios.InsertOne(new BsonDocument { { "nombre", Request["usuario"] } });
-
-                    return usuarios.ToJson();
-                    
                     break;
-
 
                 case "offline":
                     var filtroOffline = Builders<BsonDocument>.Filter.Eq("nombre", Request["usuario"]);
@@ -110,7 +114,7 @@ namespace TicsChat.Controllers
                     foreach (var mensajeLista in mensajes)
                     {
                         mensaje = new BsonDocument();
-                        numero = mensajeLista["numero"].ToString();
+                        var numero = mensajeLista["numero"].ToString();
                         if (Convert.ToInt32(numero.ToString()) > Convert.ToInt32(Request["ultimoMensaje"].ToString()))
                         {
                             mensajeLista.Remove("_id");

@@ -36,21 +36,24 @@ function check() {
         data: data,
         type: 'POST'
     }).done(function (result) {
-        var lista = JSON.parse(result);
+        if (result == "Login ya existe en esta sala") {
+            alert(result);
+        } else {
+            var lista = JSON.parse(result);
 
-        ultimoMensaje = parseInt(lista[lista.length - 1].numero);
+            ultimoMensaje = parseInt(lista[lista.length - 1].numero);
 
-        $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
+            $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
 
-        for (i = 0; i < lista.length-2; i++) {
-            $("#online").append(lista[i].nombre + "<br>");
+            for (i = 0; i < lista.length - 1; i++) {
+                $("#online").append(lista[i].nombre + "<br>");
+            }
+
+            setTimeout(function () {
+                refresh();
+            }, 1000);
+
         }
-
-        setTimeout(function () {
-            refresh();
-        }, 1000);
-
-        
 
     }).fail(function (a, b, c) {
         console.log(a);
