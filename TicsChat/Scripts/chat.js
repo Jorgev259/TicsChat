@@ -40,7 +40,7 @@ function check() {
         console.log(lista);
         ultimoMensaje = parseInt(lista[lista.length - 1].numero);
         console.log(ultimoMensaje);
-        $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button>')
+        $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
 
         setTimeout(function () {
             refresh();
