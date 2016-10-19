@@ -37,12 +37,12 @@ function check() {
         type: 'POST'
     }).done(function (result) {
         var lista = JSON.parse(result);
-        console.log(lista);
+
         ultimoMensaje = parseInt(lista[lista.length - 1].numero);
 
         $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
 
-        for (i = 0; i < lista.length-1; i++) {
+        for (i = 0; i < lista.length-2; i++) {
             $("#online").append(lista[i].nombre + "<br>");
         }
 
@@ -81,7 +81,13 @@ function refresh() {
                 var elemento = JSON.parse(lista[i]);
 
                 if (elemento.tipo == "sistema") {
-
+                    switch (elemento.modo) {
+                        case "online":
+                            $("#online").append(elemento.info + "<br>");
+                            break;
+                        case "offline":
+                            break;
+                    }
                 }
 
                 $("body").append("<br>" + elemento.mensaje);

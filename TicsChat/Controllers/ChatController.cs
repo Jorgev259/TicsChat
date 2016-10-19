@@ -46,13 +46,18 @@ namespace TicsChat.Controllers
                     break;
 
                 case "join":                   
-                    collectionUsuarios.InsertOne(new BsonDocument { { "nombre", Request["usuario"] } });
+                   
 
                     var mensajes = collection.Find(new BsonDocument()).ToList();
                     var usuarios = collectionUsuarios.Find(new BsonDocument()).ToList();
 
+                    var existe = false;
                     foreach(var usuario in usuarios)
                     {
+                        if(usuario["nombre"] == Request["usuario"])
+                        {
+                            existe = true;
+                        }
                         usuario.Remove("_id");
                     }
 
@@ -77,14 +82,18 @@ namespace TicsChat.Controllers
                     {
                         { "mensaje", "El usuario " + Request["usuario"] + " se ha unido a la sala" },
                         { "numero", num + 1},
-                        {"tipo", "sistema" }
+                        {"tipo", "sistema" },
+                        {"modo", "online" },
+                        {"info", Request["usuario"] }
                     };
 
                     collection.InsertOne(documento);
-
+                    collectionUsuarios.InsertOne(new BsonDocument { { "nombre", Request["usuario"] } });
 
                     return usuarios.ToJson();
+                    
                     break;
+
 
                 case "offline":
                     var filtroOffline = Builders<BsonDocument>.Filter.Eq("nombre", Request["usuario"]);
@@ -104,10 +113,8 @@ namespace TicsChat.Controllers
                         numero = mensajeLista["numero"].ToString();
                         if (Convert.ToInt32(numero.ToString()) > Convert.ToInt32(Request["ultimoMensaje"].ToString()))
                         {
-                            mensaje.Add("mensaje", (mensajeLista["mensaje"].ToString()));
-                            mensaje.Add("id", (mensajeLista["numero"].ToString()));
-                            mensaje.Add("tipo", (mensajeLista["tipo"].ToString()));
-                            lista.Add(mensaje.ToJson());
+                            mensajeLista.Remove("_id");
+                            lista.Add(mensajeLista.ToJson());
                         }
                      
                     }
