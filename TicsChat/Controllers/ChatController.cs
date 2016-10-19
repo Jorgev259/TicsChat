@@ -63,7 +63,25 @@ namespace TicsChat.Controllers
                     }
                     
                     usuarios.Add(new BsonDocument { { "numero", numero } });
-                    
+
+                    filter = new BsonDocument();
+                    cursor = collection.Find(filter).ToList();
+                    num = 0;
+
+                    if (cursor.Count() > 0)
+                    {
+                        num = Convert.ToInt32(cursor[cursor.Count() - 1]["numero"].ToString());
+                    }
+
+                    documento = new BsonDocument
+                    {
+                        { "mensaje", "El usuario " + Request["usuario"] + " se ha unido a la sala" },
+                        { "numero", num + 1},
+                        {"tipo", "sistema" }
+                    };
+
+                    collection.InsertOne(documento);
+
 
                     return usuarios.ToJson();
                     break;

@@ -39,12 +39,19 @@ function check() {
         var lista = JSON.parse(result);
         console.log(lista);
         ultimoMensaje = parseInt(lista[lista.length - 1].numero);
-        console.log(ultimoMensaje);
+
         $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
+
+        for (i = 0; i < lista.length-1; i++) {
+            $("#online").append(lista[i].nombre + "<br>");
+        }
 
         setTimeout(function () {
             refresh();
         }, 1000);
+
+        
+
     }).fail(function (a, b, c) {
         console.log(a);
         console.log(b);
@@ -69,12 +76,10 @@ function refresh() {
     {
         console.log(result);
         var lista = JSON.parse(result);
-        console.log("refresh");
-        console.log(lista.length);
         if (lista.length > 0) {
             for (i = 0; i < lista.length ; i++) {
                 var elemento = JSON.parse(lista[i]);
-                console.log(elemento);
+
                 if (elemento.tipo == "sistema") {
 
                 }
