@@ -27,7 +27,7 @@ function inicio() {
 
 function check() {
     var data = new FormData();
-    sala1 = $("#sala").val();
+    sala1 = $("#sala2").val();
 
     usuario = $("#usuario2").val();
     data.append("accion", "join");
