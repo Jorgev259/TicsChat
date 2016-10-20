@@ -2,13 +2,9 @@
 var usuario = "";
 var sala1 = "";
 
-
-function mensaje() {
+function inicio() {
     var data = new FormData();
-    data.append("accion", "mensaje");
-    data.append("mensaje", $("#mensaje").val());
-    data.append("sala", sala1);
-    $("#mensaje").val([]);
+    data.append("accion", "inicio");
 
     $.ajax({
         url: '/Api/Chat',
@@ -17,14 +13,19 @@ function mensaje() {
         data: data,
         type: 'POST'
     }).done(function (result) {
-      
+        console.log(result);
+        var lista = JSON.parse(result);
+
+        for (i = 0; i < lista.length; i++) {
+            $("#salas").append("<div>Sala " + JSON.parse(lista[i]).nombre + " con " + JSON.parse(lista[i]).usuarios + " usuarios Online</div>");
+        }
     }).fail(function (a, b, c) {
         console.log(a);
         console.log(b);
         console.log(c);
     });
 }
-//<input type="text" id="mensaje"/><button onclick="mensaje()"></button>
+
 function check() {
     var data = new FormData();
     sala1 = $("#sala").val();
@@ -48,8 +49,9 @@ function check() {
 
             ultimoMensaje = parseInt(lista[lista.length - 1].numero);
 
-            $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()">Enviar</button><div id="mensajes"></div><div id="online"></div>');
+            $("body").html('<input type="text" id="mensaje"/><input type="file" id="imagen"/><button onclick="mensaje()">Enviar</button><div id="mensajes"></div><div id="online"></div>');
             startEmotes();
+            startImages();
 
             for (i = 0; i < lista.length - 1; i++) {
                 $("#online").append("<div id='" + lista[i].nombre + "'>" + lista[i].nombre + "<br></div>");
@@ -68,6 +70,28 @@ function check() {
         console.log(b);
         console.log(c);
         check();
+    });
+}
+
+function mensaje() {
+    var data = new FormData();
+    data.append("accion", "mensaje");
+    data.append("mensaje", $("#mensaje").val());
+    data.append("sala", sala1);
+    $("#mensaje").val([]);
+
+    $.ajax({
+        url: '/Api/Chat',
+        processData: false,
+        contentType: false,
+        data: data,
+        type: 'POST'
+    }).done(function (result) {
+      
+    }).fail(function (a, b, c) {
+        console.log(a);
+        console.log(b);
+        console.log(c);
     });
 }
 
@@ -94,7 +118,7 @@ function refresh() {
                 if (elemento.tipo == "sistema") {
                     switch (elemento.modo) {
                         case "online":
-                            $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "<br></div>");
+                            $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "</div><br>");
                             break;
                         case "offline":
                             $("#" + elemento.info).hide()
@@ -102,7 +126,7 @@ function refresh() {
                     }
                 }
 
-                $("#mensajes").append("<br>" + elemento.mensaje);
+                $("#mensajes").append(elemento.mensaje + "<br>");
                 emojify.run();
                 ultimoMensaje++;
             }
@@ -134,32 +158,51 @@ function startEmotes() {
         }
     });
 }
+
 function log_out_listener() {
-    //window.addEventListener('beforeunload', function () {
-    //    var wait = true;
-    //    setTimeout(function () {
-    //        wait = false;
-    //    }, 1000);
+    window.addEventListener('beforeunload', function () {
+        var data = new FormData();
+        data.append("accion", "offline");
+        data.append("usuario", usuario);
+        data.append("sala", sala1);
 
-    //    var data = new FormData();
-    //    data.append("accion", "offline");
-    //    data.append("usuario", usuario);
-    //    data.append("sala", sala1);
+        $.ajax({
+            url: '/Api/Chat',
+            processData: false,
+            contentType: false,
+            data: data,
+            async: false,
+            type: 'POST'
+        }).done(function (result) {
+            wait = false;
+        }).fail(function (a, b, c) {
+            console.log(a);
+            console.log(b);
+            console.log(c);
+        });
+    })
+}
 
-    //    $.ajax({
-    //        url: '/Api/Chat',
-    //        processData: false,
-    //        contentType: false,
-    //        data: data,
-    //        type: 'POST'
-    //    }).done(function (result) {
-    //        wait = false;
-    //    }).fail(function (a, b, c) {
-    //        console.log(a);
-    //        console.log(b);
-    //        console.log(c);
-    //    });
+$(document).ready(function () {
+    inicio();
+})
 
-    //    while (wait == true) { }
-    //})
+function startImages(){
+    File.prototype.convertToBase64 = function (callback) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            callback(e.target.result)
+        };
+        reader.onerror = function (e) {
+            callback(null);
+        };
+        reader.readAsDataURL(this);
+    };
+
+    $("#imagen").on('change', function () {
+        var selectedFile = this.files[0];
+        selectedFile.convertToBase64(function (base64) {
+            alert(base64);
+        })
+    });
 }

@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 using System.IO;
+using System.Drawing;
 
 namespace TicsChat.Controllers
 {
@@ -20,11 +21,40 @@ namespace TicsChat.Controllers
             var Request = HttpContext.Current.Request;
             var client = new MongoClient("mongodb://localhost:27017");
             var db = client.GetDatabase("Chat");
-            var collection = db.GetCollection<BsonDocument>(Request["sala"]);
-            var collectionUsuarios = db.GetCollection<BsonDocument>(Request["sala"] + "Usuarios");
+            var collection = db.GetCollection<BsonDocument>("default"); ;
+            var collectionUsuarios = db.GetCollection<BsonDocument>("default");
+
+            if (Request["accion"] != "inicio")
+            {                
+                collection = db.GetCollection<BsonDocument>(Request["sala"]);
+                collectionUsuarios = db.GetCollection<BsonDocument>(Request["sala"] + "Usuarios");
+            }
 
             switch (Request["accion"])
             {
+                case "inicio":
+                    var listaColecciones = db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result;
+                    List<String> listaC = new List<string>();
+
+                    foreach(var item in listaColecciones)
+                    {
+
+                        if (item["name"].ToString().Contains("Usuarios") == false)
+                        {
+                            var Count = db.GetCollection<BsonDocument>(item["name"].ToString()).Find(new BsonDocument()).ToList().Count();
+
+                            var documentoC = new BsonDocument
+                            {
+                                { "nombre", item["name"].ToString() },
+                                { "usuarios", Count},
+                            };
+
+                            listaC.Add(documentoC.ToJson());
+                        }
+                    }
+                    return listaC.ToJson();
+                    break;
+
                 case "mensaje":
                     var filter = new BsonDocument();
                     var cursor = collection.Find(filter).ToList();
@@ -42,7 +72,17 @@ namespace TicsChat.Controllers
                         {"tipo", "usuario" }
                     };
 
-                    collection.InsertOne(documento);
+                    collection.InsertOneAsync(documento);
+                    break;
+
+                case "imagen":
+                    byte[] imageBytes = Convert.FromBase64String(base64String);
+                    // Convert byte[] to Image
+                    using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+                    {
+                        Image image = Image.FromStream(ms, true);
+                        return image;
+                    }
                     break;
 
                 case "join":                   
@@ -87,8 +127,8 @@ namespace TicsChat.Controllers
                             {"info", Request["usuario"] }
                         };
 
-                        collection.InsertOne(documento);
-                        collectionUsuarios.InsertOne(new BsonDocument { { "nombre", Request["usuario"] } });
+                        collection.InsertOneAsync(documento);
+                        collectionUsuarios.InsertOneAsync(new BsonDocument { { "nombre", Request["usuario"] } });
 
                         return usuarios.ToJson();
                     }else
@@ -103,7 +143,7 @@ namespace TicsChat.Controllers
 
 
                     filter = new BsonDocument();
-                    cursor = collection.Find(filter).ToList();
+                    cursor = collection.Find(filter).ToList();                    
                     num = 0;
 
                     if (cursor.Count() > 0)
@@ -111,7 +151,16 @@ namespace TicsChat.Controllers
                         num = Convert.ToInt32(cursor[cursor.Count() - 1]["numero"].ToString());
                     }
 
-                    documento = new BsonDocument
+                    var cursorUsuarios = collectionUsuarios.Find(filter).ToList();
+                    if (cursorUsuarios.Count() == 0)
+                    {
+                        db.DropCollectionAsync(Request["sala"]);
+                        db.DropCollectionAsync(Request["sala"]+"Usuarios");
+                    }
+                    else
+                    {
+
+                        documento = new BsonDocument
                         {
                             { "mensaje", "El usuario " + Request["usuario"] + " se ha desconectado" },
                             { "numero", num + 1},
@@ -120,7 +169,8 @@ namespace TicsChat.Controllers
                             {"info", Request["usuario"] }
                         };
 
-                    collection.InsertOne(documento);
+                        collection.InsertOneAsync(documento);
+                    }
 
                     break;
 
