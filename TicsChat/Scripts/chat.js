@@ -46,7 +46,7 @@ function check() {
             $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
 
             for (i = 0; i < lista.length - 1; i++) {
-                $("#online").append(lista[i].nombre + "<br>");
+                $("#online").append("<div id='" + lista[i].nombre + "'>" + lista[i].nombre + "<br></div>");
             }
 
             setTimeout(function () {
@@ -86,7 +86,7 @@ function refresh() {
                 if (elemento.tipo == "sistema") {
                     switch (elemento.modo) {
                         case "online":
-                            $("#online").append(elemento.info + "<br>");
+                            $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "<br></div>");
                             break;
                         case "offline":
                             break;
@@ -114,7 +114,7 @@ window.addEventListener('beforeunload', function () {
     var wait = true;
     setTimeout(function () {
         wait = false;
-    },5000);
+    },1000);
 
     var data = new FormData();
     data.append("accion", "offline");
