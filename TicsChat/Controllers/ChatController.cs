@@ -76,13 +76,22 @@ namespace TicsChat.Controllers
                     break;
 
                 case "imagen":
-                    byte[] imageBytes = Convert.FromBase64String(base64String);
-                    // Convert byte[] to Image
+                    var base64 = Request["imagen"].Substring(Request["imagen"].IndexOf(',') + 1);
+                    byte[] imageBytes = Convert.FromBase64String(base64);
+                    var counter = collection.Find(new BsonDocument()).ToList().Count();
+
                     using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
                     {
                         Image image = Image.FromStream(ms, true);
-                        return image;
+                        image.Save(AppDomain.CurrentDomain.BaseDirectory + "temp\\" + Request["sala"] + counter + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
                     }
+
+                    documento = new BsonDocument
+                    {
+                        { "numero",counter},
+                        { "tipo","imagen"}
+                    };
+                    collection.InsertOneAsync(documento);
                     break;
 
                 case "join":                   

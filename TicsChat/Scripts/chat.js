@@ -13,7 +13,6 @@ function inicio() {
         data: data,
         type: 'POST'
     }).done(function (result) {
-        console.log(result);
         var lista = JSON.parse(result);
 
         for (i = 0; i < lista.length; i++) {
@@ -30,7 +29,7 @@ function check() {
     var data = new FormData();
     sala1 = $("#sala").val();
 
-    usuario = $("#mensaje").val();
+    usuario = $("#usuario2").val();
     data.append("accion", "join");
     data.append("usuario", usuario);
     data.append("sala", sala1);
@@ -95,6 +94,27 @@ function mensaje() {
     });
 }
 
+function subirImagen(base64) {
+        var data = new FormData();
+        data.append("accion", "imagen");
+        data.append("imagen", base64);
+        data.append("sala", sala1);
+
+        $.ajax({
+            url: '/Api/Chat',
+            processData: false,
+            contentType: false,
+            data: data,
+            type: 'POST'
+        }).done(function (result) {
+
+        }).fail(function (a, b, c) {
+            console.log(a);
+            console.log(b);
+            console.log(c);
+        });
+}
+
 function refresh() {
     var data = new FormData();
     data.append("accion", "refresh");
@@ -109,21 +129,27 @@ function refresh() {
         type: 'POST'
     }).done(function (result)
     {
-        console.log(result);
         var lista = JSON.parse(result);
         if (lista.length > 0) {
             for (i = 0; i < lista.length ; i++) {
                 var elemento = JSON.parse(lista[i]);
 
-                if (elemento.tipo == "sistema") {
-                    switch (elemento.modo) {
-                        case "online":
-                            $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "</div><br>");
-                            break;
-                        case "offline":
-                            $("#" + elemento.info).hide()
-                            break;
-                    }
+                switch(elemento.tipo) {
+                    case "sistema":
+                        switch (elemento.modo) {
+                            case "online":
+                                $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "</div><br>");
+                                break;
+                            case "offline":
+                                $("#" + elemento.info).hide()
+                                break;
+                        }
+                        break;
+
+                    case "imagen":
+                        elemento.mensaje = "<img class='mensaje' src='temp/" + sala1 + elemento.numero + ".jpg'>";
+                        console.log(elemento.mensaje);
+                        break;
                 }
 
                 $("#mensajes").append(elemento.mensaje + "<br>");
@@ -202,7 +228,7 @@ function startImages(){
     $("#imagen").on('change', function () {
         var selectedFile = this.files[0];
         selectedFile.convertToBase64(function (base64) {
-            alert(base64);
+            subirImagen(base64);
         })
     });
 }
