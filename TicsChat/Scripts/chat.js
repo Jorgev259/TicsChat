@@ -1,11 +1,14 @@
 ﻿var ultimoMensaje = 0;
 var usuario = "";
+var sala1 = "";
+
 
 function mensaje() {
     var data = new FormData();
     data.append("accion", "mensaje");
     data.append("mensaje", $("#mensaje").val());
-    data.append("sala", "sala0");
+    data.append("sala", sala1);
+    $("#mensaje").val([]);
 
     $.ajax({
         url: '/Api/Chat',
@@ -24,10 +27,12 @@ function mensaje() {
 //<input type="text" id="mensaje"/><button onclick="mensaje()"></button>
 function check() {
     var data = new FormData();
+    sala1 = $("#sala").val();
+
     usuario = $("#mensaje").val();
     data.append("accion", "join");
     data.append("usuario", usuario);
-    data.append("sala", "sala0");
+    data.append("sala", sala1);
 
     $.ajax({
         url: '/Api/Chat',
@@ -43,11 +48,14 @@ function check() {
 
             ultimoMensaje = parseInt(lista[lista.length - 1].numero);
 
-            $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()"></button><div id="online"></div>')
+            $("body").html('<input type="text" id="mensaje"/><button onclick="mensaje()">Enviar</button><div id="mensajes"></div><div id="online"></div>');
+            startEmotes();
 
             for (i = 0; i < lista.length - 1; i++) {
                 $("#online").append("<div id='" + lista[i].nombre + "'>" + lista[i].nombre + "<br></div>");
             }
+
+            log_out_listener();
 
             setTimeout(function () {
                 refresh();
@@ -67,7 +75,7 @@ function refresh() {
     var data = new FormData();
     data.append("accion", "refresh");
     data.append("ultimoMensaje", ultimoMensaje);
-    data.append("sala", "sala0");
+    data.append("sala", sala1);
 
     $.ajax({
         url: '/Api/Chat',
@@ -89,11 +97,13 @@ function refresh() {
                             $("#online").append("<div id='" + elemento.info + "'>" + elemento.info + "<br></div>");
                             break;
                         case "offline":
+                            $("#" + elemento.info).hide()
                             break;
                     }
                 }
 
-                $("body").append("<br>" + elemento.mensaje);
+                $("#mensajes").append("<br>" + elemento.mensaje);
+                emojify.run();
                 ultimoMensaje++;
             }
         }
@@ -110,30 +120,46 @@ function refresh() {
     
 }
 
-window.addEventListener('beforeunload', function () {
-    var wait = true;
-    setTimeout(function () {
-        wait = false;
-    },1000);
-
-    var data = new FormData();
-    data.append("accion", "offline");
-    data.append("usuario", usuario);
-    data.append("sala", "sala0");
-
-    $.ajax({
-        url: '/Api/Chat',
-        processData: false,
-        contentType: false,
-        data: data,
-        type: 'POST'
-    }).done(function (result) {
-        wait = false;
-    }).fail(function (a, b, c) {
-        console.log(a);
-        console.log(b);
-        console.log(c);
+function startEmotes() {
+    emojify.setConfig({
+        emojify_tag_type: 'div',           // Only run emojify.js on this element
+        only_crawl_id: null,            // Use to restrict where emojify.js applies
+        img_dir: 'images/basic',  // Directory for emoji images
+        ignored_tags: {                // Ignore the following tags
+            'SCRIPT': 1,
+            'TEXTAREA': 1,
+            'A': 1,
+            'PRE': 1,
+            'CODE': 1
+        }
     });
+}
+function log_out_listener() {
+    //window.addEventListener('beforeunload', function () {
+    //    var wait = true;
+    //    setTimeout(function () {
+    //        wait = false;
+    //    }, 1000);
 
-    while (wait == true) { }
-})
+    //    var data = new FormData();
+    //    data.append("accion", "offline");
+    //    data.append("usuario", usuario);
+    //    data.append("sala", sala1);
+
+    //    $.ajax({
+    //        url: '/Api/Chat',
+    //        processData: false,
+    //        contentType: false,
+    //        data: data,
+    //        type: 'POST'
+    //    }).done(function (result) {
+    //        wait = false;
+    //    }).fail(function (a, b, c) {
+    //        console.log(a);
+    //        console.log(b);
+    //        console.log(c);
+    //    });
+
+    //    while (wait == true) { }
+    //})
+}
